@@ -16,8 +16,8 @@ its only runtime dependency. It started from the official JavaScript template.
 ```bash
 npm install
 npm test                                  # node --test, the built-in runner
-node --test test/devices.test.js          # one file
-node --test --test-name-pattern "plug"    # tests whose name matches
+node --test test/integration.test.js      # one file
+node --test --test-name-pattern "voice"   # tests whose name matches
 npm run lint                              # ESLint
 npm run format:check                      # Prettier, as the CI runs it
 npm run format                            # Prettier, fix in place
@@ -31,16 +31,17 @@ pushing.
 ## Architecture
 
 ```
-index.js                          SDK wiring only: handlers registered before connect()
-src/devices/index.js              registry of the device blueprints + dispatch helpers
-src/devices/<type>.js             one device type per file (buildDevice, onPoll, onSetValue...)
-src/scenes.js                     scene action handlers (manifest `scene_actions`)
-src/widgets.js                    dashboard widget handlers (manifest `widgets`)
+index.js                          SDK wiring only (registerHandlers + connect)
+src/app.js                        handlers: onTtsSynthesize, actions, config, lifecycle
+src/integration.js                OpenAiTts: synthesis, memory, status, scene triggers, buttons
+src/openai/client.js              HTTP client of /audio/speech, /models, /audio/voices
+src/audio.js                      content type of a clip from its first bytes
 src/config.js                     DEFAULT_CONFIG (mirrors the manifest defaults) + normalization
-src/weather.js                    example driver (Open-Meteo)
-gladys-assistant-integration.json manifest: name, config_schema, actions, image...
-docs/en.md, docs/fr.md            user documentation, re-hosted by Gladys (mandatory)
+src/lifecycle.js                  exit on an unhandled rejection
+gladys-assistant-integration.json manifest: type tts, config_schema, actions, scene_triggers
+docs/{en,fr,de,es}.md             user documentation, re-hosted by Gladys
 test/                             node --test, against the SDK's fake Gladys (integration-sdk/testing)
+test/fixtures/kokoro/             real answers of Kokoro-FastAPI; openai/ written after the docs
 .github/scripts/release.mjs       release helpers (manifest bump, changelog), tested in test/
 ```
 
@@ -251,3 +252,24 @@ long, et sur un « Sie »/« Ihr… » de politesse en allemand. Le store exige 
 - Docs `en`, `fr`, `de`, `es` avec les mêmes sections.
 - Chauffe, ouverture, sécurité : ne rien rendre pilotable « comme un thermostat » ou par un assistant
   vocal quand une erreur serait dangereuse (leçon d'OctoPrint).
+
+## Voix compatible OpenAI (cette intégration)
+
+- API : `POST <base>/audio/speech` `{model, input, voice, response_format, speed?, instructions?}`. **N'envoyer que
+  les champs d'OpenAI** : OpenAI refuse les paramètres inconnus (pas de `stream`, `lang_code`… de Kokoro-FastAPI).
+  `speed` n'est envoyé que s'il diffère de 1, `instructions` aux seuls modèles `gpt-…-tts`.
+- Vérification du serveur par `GET /models` et `GET /audio/voices` (Kokoro-FastAPI seul ; 404 ailleurs = pas de
+  liste), **jamais par une synthèse** : elle est facturée chez OpenAI. Toutes les 5 min, minuteur `unref`.
+- Type du clip lu dans les octets (`src/audio.js`) : Kokoro-FastAPI annonce `audio/opus` pour de l'Ogg, que Gladys
+  n'accepte que sous `audio/ogg`. FLAC et PCM existent dans l'API mais Gladys les refuse : absents du formulaire.
+- Les erreurs FastAPI 422 renvoient le corps reçu dans `detail[].input` : ne lire que `msg` (le texte dit, sinon,
+  finirait dans les journaux). Kokoro répond 400 à une voix ou un modèle inconnus, avec la liste des voix.
+- Mesuré le 10/11/2026 (`kokoro-fastapi-cpu`, 4 cœurs partagés) : ~4 s pour 50 caractères, 175 s pour 2 000. Gladys
+  attend 30 s : délai de 25 s, et **un délai dépassé en synthèse ne marque pas le serveur hors ligne** (sinon un
+  texte long ferait passer `server_offline`) ; seules les vérifications périodiques le font pour un délai.
+- Voix absente du serveur (400) : échec de la seule requête, statut inchangé, pas de déclencheur. De même pour un
+  429, un 5xx ou un 404 de **synthèse** (crédit OpenAI épuisé alors que `/models` répond) : seuls « injoignable » et
+  « clé refusée » marquent le serveur hors ligne depuis une synthèse, sinon les déclencheurs battraient à chaque
+  vérification. Le message d'OpenAI sur une clé refusée cite son début et sa fin : `sk-…` est masqué.
+- Kokoro n'a pas de voix allemande : `voice_de` vide par défaut, la voix française (puis anglaise…) parle.
+- `secret` sans `default` dans le manifeste (le validateur le refuse : il finirait dans l'index du store).

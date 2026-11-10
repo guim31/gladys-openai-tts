@@ -1,0 +1,7 @@
+{
+  "detail": {
+    "error": "invalid_model",
+    "message": "Unsupported model: nope",
+    "type": "invalid_request_error"
+  }
+}

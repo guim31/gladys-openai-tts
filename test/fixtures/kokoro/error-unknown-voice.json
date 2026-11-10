@@ -1,0 +1,7 @@
+{
+  "detail": {
+    "error": "validation_error",
+    "message": "Voice 'zz_nobody' not found. Available voices: af_alloy, af_heart, ff_siwis",
+    "type": "invalid_request_error"
+  }
+}
