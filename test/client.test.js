@@ -109,9 +109,14 @@ test('server failures, missing address, timeouts and non-audio answers have thei
   assert.match(refused.message, /ECONNREFUSED/);
   const slow = await speak({
     '/v1/audio/speech': (call) =>
-      new Promise((_, reject) =>
-        call.signal.addEventListener('abort', () => reject(call.signal.reason)),
-      ),
+      new Promise((_, reject) => {
+        // AbortSignal.timeout does not keep the event loop alive (Node 22).
+        const alive = setTimeout(() => {}, 5000);
+        call.signal.addEventListener('abort', () => {
+          clearTimeout(alive);
+          reject(call.signal.reason);
+        });
+      }),
   });
   assert.equal(slow.kind, 'timeout');
 });
