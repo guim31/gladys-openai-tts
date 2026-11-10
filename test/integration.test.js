@@ -114,12 +114,42 @@ test('OpenAI settings: key, model, style, speed and format reach the request', a
   });
 });
 
-test('tts-1 never receives the speaking style', async () => {
-  const { gladys, fetch } = await setup({
-    config: { base_url: BASE, model: 'tts-1', instructions: 'Whisper.' },
+test('tts-1 and Kokoro never receive the speaking style', async () => {
+  for (const model of ['tts-1', 'kokoro']) {
+    const { gladys, fetch } = await setup({
+      config: { base_url: BASE, model, instructions: 'Whisper.' },
+    });
+    await gladys.fake.ttsSynthesize('Bonsoir.', 'fr');
+    assert.equal(fetch.speech().at(-1).body.instructions, undefined, model);
+  }
+});
+
+test('used-up OpenAI credit fails the announcements without flapping the triggers', async () => {
+  const { gladys, tts } = await setup({
+    routes: {
+      '/v1/audio/speech': () =>
+        json('{"error":{"message":"You exceeded your current quota."}}', 429),
+    },
   });
-  await gladys.fake.ttsSynthesize('Bonsoir.', 'fr');
-  assert.equal(fetch.speech().at(-1).body.instructions, undefined);
+  for (let i = 0; i < 3; i += 1) {
+    const ack = await gladys.fake.ttsSynthesize(`Alerte ${i}.`, 'fr');
+    assert.equal(ack.success, false);
+    assert.match(ack.error, /OpenAI credit is used up.*exceeded your current quota/);
+    await tts.check();
+  }
+  assert.deepEqual(gladys.fake.sceneEvents, []);
+  assert.equal(gladys.fake.connectionStatus.connected, true);
+});
+
+test('an address that cannot be used is said so, not taken for an empty one', async () => {
+  const { gladys, fetch } = await setup({ config: { base_url: 'http://user:pass@192.0.2.10/v1' } });
+  assert.equal(fetch.calls.length, 0);
+  assert.deepEqual(gladys.fake.connectionStatus, {
+    connected: false,
+    message: MESSAGES.invalid_url,
+  });
+  const ack = await gladys.fake.ttsSynthesize('Bonjour.', 'fr');
+  assert.match(ack.error, /not valid/);
 });
 
 test('the same announcement on several speakers is asked once, then served from memory', async () => {

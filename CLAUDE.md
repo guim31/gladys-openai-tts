@@ -257,7 +257,7 @@ long, et sur un « Sie »/« Ihr… » de politesse en allemand. Le store exige 
 
 - API : `POST <base>/audio/speech` `{model, input, voice, response_format, speed?, instructions?}`. **N'envoyer que
   les champs d'OpenAI** : OpenAI refuse les paramètres inconnus (pas de `stream`, `lang_code`… de Kokoro-FastAPI).
-  `speed` n'est envoyé que s'il diffère de 1, `instructions` jamais à `tts-1`/`tts-1-hd`.
+  `speed` n'est envoyé que s'il diffère de 1, `instructions` aux seuls modèles `gpt-…-tts`.
 - Vérification du serveur par `GET /models` et `GET /audio/voices` (Kokoro-FastAPI seul ; 404 ailleurs = pas de
   liste), **jamais par une synthèse** : elle est facturée chez OpenAI. Toutes les 5 min, minuteur `unref`.
 - Type du clip lu dans les octets (`src/audio.js`) : Kokoro-FastAPI annonce `audio/opus` pour de l'Ogg, que Gladys
@@ -267,6 +267,9 @@ long, et sur un « Sie »/« Ihr… » de politesse en allemand. Le store exige 
 - Mesuré le 10/11/2026 (`kokoro-fastapi-cpu`, 4 cœurs partagés) : ~4 s pour 50 caractères, 175 s pour 2 000. Gladys
   attend 30 s : délai de 25 s, et **un délai dépassé en synthèse ne marque pas le serveur hors ligne** (sinon un
   texte long ferait passer `server_offline`) ; seules les vérifications périodiques le font pour un délai.
-- Voix absente du serveur (400) : échec de la seule requête, statut inchangé, pas de déclencheur.
+- Voix absente du serveur (400) : échec de la seule requête, statut inchangé, pas de déclencheur. De même pour un
+  429, un 5xx ou un 404 de **synthèse** (crédit OpenAI épuisé alors que `/models` répond) : seuls « injoignable » et
+  « clé refusée » marquent le serveur hors ligne depuis une synthèse, sinon les déclencheurs battraient à chaque
+  vérification. Le message d'OpenAI sur une clé refusée cite son début et sa fin : `sk-…` est masqué.
 - Kokoro n'a pas de voix allemande : `voice_de` vide par défaut, la voix française (puis anglaise…) parle.
 - `secret` sans `default` dans le manifeste (le validateur le refuse : il finirait dans l'index du store).

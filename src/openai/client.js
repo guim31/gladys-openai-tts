@@ -67,7 +67,11 @@ export function errorDetail(body) {
   if (!found) {
     return '';
   }
-  const flat = found.replace(/\s+/g, ' ').trim();
+  // OpenAI quotes the start and end of a refused key: never keep it.
+  const flat = found
+    .replace(/\bsk-\S*/g, 'sk-…')
+    .replace(/\s+/g, ' ')
+    .trim();
   return flat.length > MAX_DETAIL ? `${flat.slice(0, MAX_DETAIL - 1)}…` : flat;
 }
 

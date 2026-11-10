@@ -67,7 +67,7 @@ export function normalizeBaseUrl(value) {
  * Normalize the raw configuration sent by Gladys: unknown values fall back to
  * the defaults. An empty voice stays empty: that language borrows another's.
  * @param {Record<string, unknown>} [raw] - Values from the configuration form.
- * @returns {{baseUrl: string|null, apiKey: string, model: string, voices: Record<string, string>, speed: number, format: string, instructions: string}} The settings.
+ * @returns {{baseUrl: string|null, invalidUrl: boolean, apiKey: string, model: string, voices: Record<string, string>, speed: number, format: string, instructions: string}} The settings.
  * @example
  * normalizeConfig({ base_url: 'kokoro.lan:8880' }).baseUrl; // 'http://kokoro.lan:8880/v1'
  */
@@ -77,8 +77,11 @@ export function normalizeConfig(raw = {}) {
     LANGUAGES.map((lang) => [lang, text(value[`voice_${lang}`], DEFAULT_CONFIG[`voice_${lang}`])]),
   );
   const speed = SPEEDS.includes(String(value.speed)) ? String(value.speed) : DEFAULT_CONFIG.speed;
+  const baseUrl = normalizeBaseUrl(value.base_url);
   return {
-    baseUrl: normalizeBaseUrl(value.base_url),
+    baseUrl,
+    // Something typed, but not a usable address.
+    invalidUrl: baseUrl === null && text(value.base_url) !== '',
     apiKey: text(value.api_key),
     model: text(value.model) || DEFAULT_CONFIG.model,
     voices,
@@ -122,11 +125,11 @@ export function voiceFor(settings, language) {
 }
 
 /**
- * Whether the model takes `instructions` (a speaking style): OpenAI's
- * `tts-1` and `tts-1-hd` do not.
+ * Whether the model takes `instructions` (a speaking style): only OpenAI's
+ * `gpt-…-tts` models do; a strict server may refuse the field otherwise.
  * @param {string} model - The model name.
  * @returns {boolean}
  */
 export function takesInstructions(model) {
-  return !/^tts-1(-hd)?$/i.test(model);
+  return /^gpt-.*tts/i.test(model);
 }

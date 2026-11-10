@@ -150,7 +150,7 @@
       "type": "string",
       "label": {
         "en": "Voice for English",
-        "fr": "Voix pour le anglais",
+        "fr": "Voix pour l'anglais",
         "de": "Stimme für Englisch",
         "es": "Voz para el inglés"
       },
@@ -174,7 +174,7 @@
       "type": "string",
       "label": {
         "en": "Voice for German",
-        "fr": "Voix pour le allemand",
+        "fr": "Voix pour l'allemand",
         "de": "Stimme für Deutsch",
         "es": "Voz para el alemán"
       },
@@ -198,7 +198,7 @@
       "type": "string",
       "label": {
         "en": "Voice for Spanish",
-        "fr": "Voix pour le espagnol",
+        "fr": "Voix pour l'espagnol",
         "de": "Stimme für Spanisch",
         "es": "Voz para el español"
       },

@@ -29,6 +29,8 @@ export const CHECK_INTERVAL_MS = 5 * 60 * 1000;
 // `server_offline` trigger. The others concern one request only (a voice the
 // server does not have, a text with nothing to say).
 const SERVICE_ERRORS = ['unreachable', 'timeout', 'auth', 'not_found', 'rate_limited', 'server'];
+// The ones a failed synthesis reports: those the check would see as well.
+const SPEECH_OFFLINE_ERRORS = ['unreachable', 'auth'];
 
 export const MESSAGES = {
   not_configured: {
@@ -36,6 +38,12 @@ export const MESSAGES = {
     fr: "Saisissez l'adresse du serveur de synthèse vocale dans la configuration, puis enregistrez.",
     de: 'Gib die Adresse des Sprachservers in der Konfiguration ein und speichere.',
     es: 'Introduzca la dirección del servidor de síntesis de voz en la configuración y guarde.',
+  },
+  invalid_url: {
+    en: 'The server address is not valid: http:// or https://, without user name or password.',
+    fr: "L'adresse du serveur n'est pas valide : http:// ou https://, sans nom d'utilisateur ni mot de passe.",
+    de: 'Die Serveradresse ist ungültig: http:// oder https://, ohne Benutzername und Passwort.',
+    es: 'La dirección del servidor no es válida: http:// o https://, sin nombre de usuario ni contraseña.',
   },
   no_voice: {
     en: 'No voice is set: enter at least one voice in the configuration.',
@@ -352,7 +360,10 @@ export class OpenAiTts {
     const { settings, generation } = this;
     if (!settings.baseUrl) {
       this.online = undefined;
-      await this.reportStatus(false, MESSAGES.not_configured);
+      await this.reportStatus(
+        false,
+        settings.invalidUrl ? MESSAGES.invalid_url : MESSAGES.not_configured,
+      );
       return;
     }
     try {
@@ -367,7 +378,8 @@ export class OpenAiTts {
       }
       if (voices) {
         const set = [...new Set(Object.values(settings.voices).filter(Boolean))];
-        unknown.push(...set.filter((voice) => !voices.includes(voice)));
+        // A Kokoro mix (`af_heart+af_bella`) is no name of the list.
+        unknown.push(...set.filter((voice) => !voice.includes('+') && !voices.includes(voice)));
       }
       this.logger.debug(
         `Server checked: ${models?.length ?? 'no'} model(s), ${voices?.length ?? 'no'} voice(s) listed`,
@@ -485,7 +497,8 @@ export class OpenAiTts {
       throw failure(new LocalError('empty', 'nothing to say in the text'));
     }
     if (!settings.baseUrl) {
-      throw failure(new LocalError('not_configured', 'no server address configured'));
+      const kind = settings.invalidUrl ? 'invalid_url' : 'not_configured';
+      throw failure(new LocalError(kind, 'no valid server address configured'));
     }
     const voice = voiceFor(settings, language);
     if (!voice) {
@@ -525,11 +538,10 @@ export class OpenAiTts {
     } catch (err) {
       // A synthesis that runs out of time says nothing of the server: a CPU
       // engine is just slow on a long text. The periodic check tells.
-      if (
-        generation === this.generation &&
-        SERVICE_ERRORS.includes(err?.kind) &&
-        err.kind !== 'timeout'
-      ) {
+      // Nor does a 429, a 5xx or a 404 that the free lists of the check do not
+      // see (used-up OpenAI credit, a model file missing on LocalAI): marking
+      // the server offline would flap the triggers at every check.
+      if (generation === this.generation && SPEECH_OFFLINE_ERRORS.includes(err?.kind)) {
         await this.markOffline(err);
       }
       throw failure(err);

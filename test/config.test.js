@@ -31,6 +31,8 @@ test('defaults speak Kokoro, unknown values fall back to them', () => {
   assert.equal(settings.format, 'mp3');
   assert.deepEqual(settings.voices, { fr: 'ff_siwis', en: 'af_heart', de: '', es: 'ef_dora' });
   assert.equal(normalizeConfig(null).baseUrl, null);
+  assert.equal(normalizeConfig({}).invalidUrl, false);
+  assert.equal(normalizeConfig({ base_url: 'ftp://192.0.2.10/v1' }).invalidUrl, true);
   assert.equal(normalizeConfig({ speed: '1.25' }).speed, 1.25);
 });
 
@@ -51,9 +53,9 @@ test('a language without voice borrows the first one set, French first', () => {
   assert.equal(voiceFor(none, 'fr'), null);
 });
 
-test('tts-1 and tts-1-hd take no speaking style', () => {
+test('only the gpt-…-tts models take a speaking style', () => {
   assert.equal(takesInstructions('tts-1'), false);
   assert.equal(takesInstructions('TTS-1-HD'), false);
   assert.equal(takesInstructions('gpt-4o-mini-tts'), true);
-  assert.equal(takesInstructions('kokoro'), true);
+  assert.equal(takesInstructions('kokoro'), false);
 });

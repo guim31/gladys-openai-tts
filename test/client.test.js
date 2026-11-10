@@ -82,6 +82,10 @@ test('a FastAPI validation error never shows the echoed input', () => {
   );
   assert.equal(errorDetail(body), 'Field required');
   assert.equal(errorDetail(Buffer.from('<html>502</html>')), '');
+  const key = Buffer.from(
+    '{"error":{"message":"Incorrect API key provided: sk-abc***xyz. See docs."}}',
+  );
+  assert.equal(errorDetail(key), 'Incorrect API key provided: sk-… See docs.');
   assert.ok(errorDetail(Buffer.from(JSON.stringify({ detail: 'x'.repeat(500) }))).length <= 160);
 });
 
