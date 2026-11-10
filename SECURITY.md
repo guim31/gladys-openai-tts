@@ -30,6 +30,14 @@ Gladys before reporting a problem.
 
 In scope: the code of this repository and the Docker image it publishes.
 
+The integration stores nothing in `/data`. Its settings, including the API key,
+are kept by Gladys and sent to the container; the key only goes to the
+configured server, in the `Authorization` header, and is never logged. The
+texts spoken go to that server only: to OpenAI when its address is
+`https://api.openai.com/v1`, to your own machine for a local server. The
+container only makes outgoing HTTP(S) requests to that address.
+
 Out of scope: Gladys Assistant itself (see its
 [security policy](https://github.com/GladysAssistant/Gladys/security/policy)),
-and the third-party services and devices the integration talks to.
+and the speech servers the integration talks to (Kokoro-FastAPI, LocalAI,
+OpenAI…).

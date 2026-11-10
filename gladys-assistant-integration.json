@@ -1,177 +1,537 @@
 {
   "manifest_version": 1,
-  "type": "device",
-  "name": "Demo Devices Template",
+  "type": "tts",
+  "name": "OpenAI-compatible voice",
   "description": {
-    "en": "Starter template showing sensors, a switch, a dimmable light and a smart plug.",
-    "fr": "Template de démarrage : capteurs, interrupteur, lampe variable et prise connectée."
+    "en": "Gladys speaks with Kokoro, LocalAI, Speaches or OpenAI: any server of the OpenAI speech API.",
+    "fr": "Gladys parle avec Kokoro, LocalAI, Speaches ou OpenAI : tout serveur de l'API vocale d'OpenAI.",
+    "de": "Gladys spricht mit Kokoro, LocalAI, Speaches oder OpenAI: jeder Server der OpenAI-Sprach-API.",
+    "es": "Gladys habla con Kokoro, LocalAI, Speaches u OpenAI: cualquier servidor de la API de voz de OpenAI."
   },
   "version": "1.0.0",
-  "docker_image": "ghcr.io/gladysassistant/integration-template-js:1.0.0",
-  "gladys_version": ">=5.1.0",
-  "cover_image": "https://raw.githubusercontent.com/GladysAssistant/integration-template-js/master/cover.png",
-  "categories": ["lighting", "security", "environment"],
-  "transports": ["local", "cloud"],
+  "docker_image": "ghcr.io/guim31/gladys-openai-tts:1.0.0",
+  "gladys_version": ">=5.3.0",
+  "cover_image": "https://raw.githubusercontent.com/guim31/gladys-openai-tts/main/cover.png",
+  "categories": ["assistants"],
+  "keywords": [
+    "openai",
+    "kokoro",
+    "kokoro-fastapi",
+    "localai",
+    "speaches",
+    "tts",
+    "text-to-speech",
+    "synthèse vocale",
+    "voix",
+    "voice"
+  ],
+  "transports": ["local"],
   "config_schema": [
     {
       "key": "intro",
       "type": "section",
-      "label": { "en": "Getting started", "fr": "Pour commencer" },
+      "label": {
+        "en": "Your speech server",
+        "fr": "Votre serveur de synthèse vocale",
+        "de": "Dein Sprachserver",
+        "es": "Su servidor de síntesis de voz"
+      },
       "description": {
-        "en": "The demo weather station reads real data from the free Open-Meteo API: pick the coordinates to observe. No account, no API key.",
-        "fr": "La station météo de démonstration lit de vraies données via l'API gratuite Open-Meteo : choisissez les coordonnées à observer. Pas de compte, pas de clé d'API."
+        "en": "Kokoro-FastAPI on your network (port 8880), LocalAI, Speaches, or OpenAI with your API key: texts then go to OpenAI and are billed. Once saved, choose this voice in Integrations → Artificial Intelligence → Voice.",
+        "fr": "Kokoro-FastAPI sur votre réseau (port 8880), LocalAI, Speaches, ou OpenAI avec votre clé d'API : les textes partent alors chez OpenAI et sont facturés. Une fois enregistré, choisissez cette voix dans Intégrations → Intelligence artificielle → Voix.",
+        "de": "Kokoro-FastAPI in deinem Netzwerk (Port 8880), LocalAI, Speaches oder OpenAI mit deinem API-Schlüssel: Die Texte gehen dann an OpenAI und werden berechnet. Wähle danach diese Stimme unter Integrationen → Künstliche Intelligenz → Stimme.",
+        "es": "Kokoro-FastAPI en su red (puerto 8880), LocalAI, Speaches u OpenAI con su clave de API: los textos van entonces a OpenAI y se facturan. Una vez guardado, elija esta voz en Integraciones → Inteligencia artificial → Voz."
       },
       "links": [
         {
-          "url": "https://open-meteo.com/en/docs",
-          "label": { "en": "Open-Meteo documentation", "fr": "Documentation Open-Meteo" }
+          "url": "https://github.com/remsky/Kokoro-FastAPI",
+          "label": {
+            "en": "Kokoro-FastAPI (Docker image)",
+            "fr": "Kokoro-FastAPI (image Docker)",
+            "de": "Kokoro-FastAPI (Docker-Image)",
+            "es": "Kokoro-FastAPI (imagen Docker)"
+          }
+        },
+        {
+          "url": "https://platform.openai.com/docs/guides/text-to-speech",
+          "label": {
+            "en": "OpenAI text to speech",
+            "fr": "Synthèse vocale d'OpenAI",
+            "de": "Sprachausgabe von OpenAI",
+            "es": "Síntesis de voz de OpenAI"
+          }
         }
       ]
     },
     {
-      "key": "latitude",
-      "type": "number",
-      "label": { "en": "Latitude", "fr": "Latitude" },
-      "description": {
-        "en": "Latitude used for the demo weather sensor.",
-        "fr": "Latitude utilisée par le capteur météo de démonstration."
+      "key": "base_url",
+      "type": "string",
+      "label": {
+        "en": "Server address",
+        "fr": "Adresse du serveur",
+        "de": "Serveradresse",
+        "es": "Dirección del servidor"
       },
-      "placeholder": { "en": "e.g. 48.8566", "fr": "ex. 48.8566" },
-      "required": true,
-      "default": 48.8566,
-      "min": -90,
-      "max": 90
+      "description": {
+        "en": "Address of the API, ending with /v1. Kokoro-FastAPI: http://<host>:8880/v1. OpenAI: https://api.openai.com/v1.",
+        "fr": "Adresse de l'API, terminée par /v1. Kokoro-FastAPI : http://<hôte>:8880/v1. OpenAI : https://api.openai.com/v1.",
+        "de": "Adresse der API, endet auf /v1. Kokoro-FastAPI: http://<Host>:8880/v1. OpenAI: https://api.openai.com/v1.",
+        "es": "Dirección de la API, terminada en /v1. Kokoro-FastAPI: http://<host>:8880/v1. OpenAI: https://api.openai.com/v1."
+      },
+      "placeholder": {
+        "en": "http://192.0.2.10:8880/v1",
+        "fr": "http://192.0.2.10:8880/v1",
+        "de": "http://192.0.2.10:8880/v1",
+        "es": "http://192.0.2.10:8880/v1"
+      },
+      "required": true
     },
     {
-      "key": "longitude",
-      "type": "number",
-      "label": { "en": "Longitude", "fr": "Longitude" },
-      "description": {
-        "en": "Longitude used for the demo weather sensor.",
-        "fr": "Longitude utilisée par le capteur météo de démonstration."
+      "key": "api_key",
+      "type": "secret",
+      "label": {
+        "en": "API key",
+        "fr": "Clé d'API",
+        "de": "API-Schlüssel",
+        "es": "Clave de API"
       },
-      "placeholder": { "en": "e.g. 2.3522", "fr": "ex. 2.3522" },
-      "required": true,
-      "default": 2.3522,
-      "min": -180,
-      "max": 180
+      "description": {
+        "en": "Required by OpenAI (sk-…). Leave empty for a local server without key.",
+        "fr": "Obligatoire chez OpenAI (sk-…). Laissez vide pour un serveur local sans clé.",
+        "de": "Bei OpenAI erforderlich (sk-…). Leer lassen für einen lokalen Server ohne Schlüssel.",
+        "es": "Obligatoria en OpenAI (sk-…). Déjela vacía para un servidor local sin clave."
+      },
+      "required": false
     },
     {
-      "key": "unit",
-      "type": "select",
-      "label": { "en": "Temperature unit", "fr": "Unité de température" },
+      "key": "model",
+      "type": "string",
+      "label": {
+        "en": "Model",
+        "fr": "Modèle",
+        "de": "Modell",
+        "es": "Modelo"
+      },
+      "description": {
+        "en": "kokoro for Kokoro-FastAPI; tts-1, tts-1-hd or gpt-4o-mini-tts at OpenAI; the model name for LocalAI or Speaches.",
+        "fr": "kokoro pour Kokoro-FastAPI ; tts-1, tts-1-hd ou gpt-4o-mini-tts chez OpenAI ; le nom du modèle pour LocalAI ou Speaches.",
+        "de": "kokoro für Kokoro-FastAPI; tts-1, tts-1-hd oder gpt-4o-mini-tts bei OpenAI; der Modellname bei LocalAI oder Speaches.",
+        "es": "kokoro para Kokoro-FastAPI; tts-1, tts-1-hd o gpt-4o-mini-tts en OpenAI; el nombre del modelo para LocalAI o Speaches."
+      },
+      "required": true,
+      "default": "kokoro"
+    },
+    {
+      "key": "voice_fr",
+      "type": "string",
+      "label": {
+        "en": "Voice for French",
+        "fr": "Voix pour le français",
+        "de": "Stimme für Französisch",
+        "es": "Voz para el francés"
+      },
+      "description": {
+        "en": "Name of a voice of the server. Empty: the voice of another language speaks (French first).",
+        "fr": "Nom d'une voix du serveur. Vide : la voix d'une autre langue parle (le français d'abord).",
+        "de": "Name einer Stimme des Servers. Leer: Die Stimme einer anderen Sprache spricht (zuerst Französisch).",
+        "es": "Nombre de una voz del servidor. Vacío: habla la voz de otro idioma (primero el francés)."
+      },
+      "placeholder": {
+        "en": "ff_siwis",
+        "fr": "ff_siwis",
+        "de": "ff_siwis",
+        "es": "ff_siwis"
+      },
       "required": false,
-      "default": "celsius",
+      "default": "ff_siwis"
+    },
+    {
+      "key": "voice_en",
+      "type": "string",
+      "label": {
+        "en": "Voice for English",
+        "fr": "Voix pour le anglais",
+        "de": "Stimme für Englisch",
+        "es": "Voz para el inglés"
+      },
+      "description": {
+        "en": "Name of a voice of the server. Empty: the voice of another language speaks (French first).",
+        "fr": "Nom d'une voix du serveur. Vide : la voix d'une autre langue parle (le français d'abord).",
+        "de": "Name einer Stimme des Servers. Leer: Die Stimme einer anderen Sprache spricht (zuerst Französisch).",
+        "es": "Nombre de una voz del servidor. Vacío: habla la voz de otro idioma (primero el francés)."
+      },
+      "placeholder": {
+        "en": "af_heart",
+        "fr": "af_heart",
+        "de": "af_heart",
+        "es": "af_heart"
+      },
+      "required": false,
+      "default": "af_heart"
+    },
+    {
+      "key": "voice_de",
+      "type": "string",
+      "label": {
+        "en": "Voice for German",
+        "fr": "Voix pour le allemand",
+        "de": "Stimme für Deutsch",
+        "es": "Voz para el alemán"
+      },
+      "description": {
+        "en": "Name of a voice of the server. Empty: the voice of another language speaks (French first).",
+        "fr": "Nom d'une voix du serveur. Vide : la voix d'une autre langue parle (le français d'abord).",
+        "de": "Name einer Stimme des Servers. Leer: Die Stimme einer anderen Sprache spricht (zuerst Französisch).",
+        "es": "Nombre de una voz del servidor. Vacío: habla la voz de otro idioma (primero el francés)."
+      },
+      "placeholder": {
+        "en": "alloy",
+        "fr": "alloy",
+        "de": "alloy",
+        "es": "alloy"
+      },
+      "required": false,
+      "default": ""
+    },
+    {
+      "key": "voice_es",
+      "type": "string",
+      "label": {
+        "en": "Voice for Spanish",
+        "fr": "Voix pour le espagnol",
+        "de": "Stimme für Spanisch",
+        "es": "Voz para el español"
+      },
+      "description": {
+        "en": "Name of a voice of the server. Empty: the voice of another language speaks (French first).",
+        "fr": "Nom d'une voix du serveur. Vide : la voix d'une autre langue parle (le français d'abord).",
+        "de": "Name einer Stimme des Servers. Leer: Die Stimme einer anderen Sprache spricht (zuerst Französisch).",
+        "es": "Nombre de una voz del servidor. Vacío: habla la voz de otro idioma (primero el francés)."
+      },
+      "placeholder": {
+        "en": "ef_dora",
+        "fr": "ef_dora",
+        "de": "ef_dora",
+        "es": "ef_dora"
+      },
+      "required": false,
+      "default": "ef_dora"
+    },
+    {
+      "key": "speed",
+      "type": "select",
+      "label": {
+        "en": "Speed",
+        "fr": "Vitesse",
+        "de": "Geschwindigkeit",
+        "es": "Velocidad"
+      },
+      "description": {
+        "en": "Speaking rate. Normal is not sent at all: every server accepts it.",
+        "fr": "Débit de parole. Normale n'est pas envoyée : tous les serveurs l'acceptent.",
+        "de": "Sprechtempo. Normal wird gar nicht gesendet: Jeder Server akzeptiert es.",
+        "es": "Velocidad del habla. La normal no se envía: todos los servidores la aceptan."
+      },
+      "required": false,
+      "default": "1",
       "options": [
-        { "value": "celsius", "label": { "en": "Celsius", "fr": "Celsius" } },
-        { "value": "fahrenheit", "label": { "en": "Fahrenheit", "fr": "Fahrenheit" } }
+        {
+          "value": "0.75",
+          "label": {
+            "en": "× 0.75",
+            "fr": "× 0.75",
+            "de": "× 0.75",
+            "es": "× 0.75"
+          }
+        },
+        {
+          "value": "0.9",
+          "label": {
+            "en": "× 0.9",
+            "fr": "× 0.9",
+            "de": "× 0.9",
+            "es": "× 0.9"
+          }
+        },
+        {
+          "value": "1",
+          "label": {
+            "en": "Normal",
+            "fr": "Normale",
+            "de": "Normal",
+            "es": "Normal"
+          }
+        },
+        {
+          "value": "1.1",
+          "label": {
+            "en": "× 1.1",
+            "fr": "× 1.1",
+            "de": "× 1.1",
+            "es": "× 1.1"
+          }
+        },
+        {
+          "value": "1.25",
+          "label": {
+            "en": "× 1.25",
+            "fr": "× 1.25",
+            "de": "× 1.25",
+            "es": "× 1.25"
+          }
+        },
+        {
+          "value": "1.5",
+          "label": {
+            "en": "× 1.5",
+            "fr": "× 1.5",
+            "de": "× 1.5",
+            "es": "× 1.5"
+          }
+        }
       ]
     },
     {
-      "key": "poll_frequency",
-      "type": "number",
-      "label": { "en": "Refresh interval (s)", "fr": "Intervalle de rafraîchissement (s)" },
+      "key": "response_format",
+      "type": "select",
+      "label": {
+        "en": "Audio format",
+        "fr": "Format audio",
+        "de": "Audioformat",
+        "es": "Formato de audio"
+      },
       "description": {
-        "en": "How often sensors are polled, in seconds (one minute minimum).",
-        "fr": "Fréquence d'interrogation des capteurs, en secondes (une minute minimum)."
+        "en": "MP3 suits every speaker. WAV makes heavy clips: Gladys refuses those over 5 MB (about 100 seconds).",
+        "fr": "Le MP3 convient à toutes les enceintes. Le WAV fait des clips lourds : Gladys refuse ceux de plus de 5 Mo (environ 100 secondes).",
+        "de": "MP3 passt zu jedem Lautsprecher. WAV ergibt schwere Clips: Gladys lehnt solche über 5 MB ab (etwa 100 Sekunden).",
+        "es": "El MP3 sirve para todos los altavoces. El WAV genera clips pesados: Gladys rechaza los de más de 5 MB (unos 100 segundos)."
       },
       "required": false,
-      "default": 300,
-      "min": 60,
-      "max": 3600
+      "default": "mp3",
+      "options": [
+        {
+          "value": "mp3",
+          "label": {
+            "en": "MP3",
+            "fr": "MP3",
+            "de": "MP3",
+            "es": "MP3"
+          }
+        },
+        {
+          "value": "opus",
+          "label": {
+            "en": "Opus (Ogg)",
+            "fr": "Opus (Ogg)",
+            "de": "Opus (Ogg)",
+            "es": "Opus (Ogg)"
+          }
+        },
+        {
+          "value": "aac",
+          "label": {
+            "en": "AAC",
+            "fr": "AAC",
+            "de": "AAC",
+            "es": "AAC"
+          }
+        },
+        {
+          "value": "wav",
+          "label": {
+            "en": "WAV",
+            "fr": "WAV",
+            "de": "WAV",
+            "es": "WAV"
+          }
+        }
+      ]
+    },
+    {
+      "key": "instructions",
+      "type": "string",
+      "label": {
+        "en": "Speaking style",
+        "fr": "Style de parole",
+        "de": "Sprechstil",
+        "es": "Estilo de habla"
+      },
+      "description": {
+        "en": "Optional, for gpt-4o-mini-tts only (ignored with tts-1): for example \"Speak calmly and warmly.\"",
+        "fr": "Facultatif, pour gpt-4o-mini-tts seulement (ignoré avec tts-1) : par exemple « Parle calmement et chaleureusement. »",
+        "de": "Optional, nur für gpt-4o-mini-tts (bei tts-1 ignoriert): zum Beispiel „Sprich ruhig und herzlich.“",
+        "es": "Opcional, solo para gpt-4o-mini-tts (se ignora con tts-1): por ejemplo «Habla con calma y calidez.»"
+      },
+      "required": false,
+      "default": ""
     }
   ],
   "actions": [
     {
-      "key": "test_weather",
-      "label": { "en": "Test the weather provider", "fr": "Tester le fournisseur météo" },
-      "timeout_seconds": 30
-    },
-    {
-      "key": "identify",
-      "label": { "en": "Identify a device", "fr": "Identifier un appareil" },
+      "key": "test_voice",
+      "label": {
+        "en": "Test the voice",
+        "fr": "Tester la voix",
+        "de": "Stimme testen",
+        "es": "Probar la voz"
+      },
+      "description": {
+        "en": "Speaks a test sentence with the saved settings and shows the result (save first).",
+        "fr": "Fait dire une phrase de test avec les réglages enregistrés et affiche le résultat (enregistrez d'abord).",
+        "de": "Lässt einen Testsatz mit den gespeicherten Einstellungen sprechen und zeigt das Ergebnis (zuerst speichern).",
+        "es": "Hace decir una frase de prueba con los ajustes guardados y muestra el resultado (guarde primero)."
+      },
+      "timeout_seconds": 30,
       "fields": [
         {
-          "key": "device",
+          "key": "language",
           "type": "select",
-          "source": "devices",
-          "label": { "en": "Device", "fr": "Appareil" },
-          "required": true
+          "label": {
+            "en": "Language",
+            "fr": "Langue",
+            "de": "Sprache",
+            "es": "Idioma"
+          },
+          "required": false,
+          "options": [
+            {
+              "value": "fr",
+              "label": {
+                "en": "French",
+                "fr": "Français",
+                "de": "Französisch",
+                "es": "Francés"
+              }
+            },
+            {
+              "value": "en",
+              "label": {
+                "en": "English",
+                "fr": "Anglais",
+                "de": "Englisch",
+                "es": "Inglés"
+              }
+            },
+            {
+              "value": "de",
+              "label": {
+                "en": "German",
+                "fr": "Allemand",
+                "de": "Deutsch",
+                "es": "Alemán"
+              }
+            },
+            {
+              "value": "es",
+              "label": {
+                "en": "Spanish",
+                "fr": "Espagnol",
+                "de": "Spanisch",
+                "es": "Español"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "list_voices",
+      "label": {
+        "en": "Show the voices",
+        "fr": "Afficher les voix",
+        "de": "Stimmen anzeigen",
+        "es": "Mostrar las voces"
+      },
+      "description": {
+        "en": "Lists the voices of the server, when it gives a list (Kokoro-FastAPI does).",
+        "fr": "Liste les voix du serveur, quand il en donne la liste (Kokoro-FastAPI le fait).",
+        "de": "Listet die Stimmen des Servers auf, wenn er eine Liste liefert (Kokoro-FastAPI tut es).",
+        "es": "Enumera las voces del servidor, cuando da la lista (Kokoro-FastAPI lo hace)."
+      },
+      "timeout_seconds": 20,
+      "fields": [
+        {
+          "key": "language",
+          "type": "select",
+          "label": {
+            "en": "Language",
+            "fr": "Langue",
+            "de": "Sprache",
+            "es": "Idioma"
+          },
+          "required": false,
+          "options": [
+            {
+              "value": "fr",
+              "label": {
+                "en": "French",
+                "fr": "Français",
+                "de": "Französisch",
+                "es": "Francés"
+              }
+            },
+            {
+              "value": "en",
+              "label": {
+                "en": "English",
+                "fr": "Anglais",
+                "de": "Englisch",
+                "es": "Inglés"
+              }
+            },
+            {
+              "value": "de",
+              "label": {
+                "en": "German",
+                "fr": "Allemand",
+                "de": "Deutsch",
+                "es": "Alemán"
+              }
+            },
+            {
+              "value": "es",
+              "label": {
+                "en": "Spanish",
+                "fr": "Espagnol",
+                "de": "Spanisch",
+                "es": "Español"
+              }
+            }
+          ]
         }
       ]
     }
   ],
   "scene_triggers": [
     {
-      "key": "motion_detected",
-      "label": { "en": "Motion detected", "fr": "Mouvement détecté" },
-      "description": {
-        "en": "A demo motion sensor saw a person or an animal move.",
-        "fr": "Un détecteur de démonstration a vu bouger une personne ou un animal."
+      "key": "server_offline",
+      "label": {
+        "en": "Voice server unavailable",
+        "fr": "Serveur de voix indisponible",
+        "de": "Sprachserver nicht verfügbar",
+        "es": "Servidor de voz no disponible"
       },
-      "fields": [
-        {
-          "key": "device",
-          "type": "select",
-          "source": "devices",
-          "label": { "en": "Sensor", "fr": "Détecteur" }
-        },
-        {
-          "key": "target",
-          "type": "multi_select",
-          "label": { "en": "What moved", "fr": "Ce qui a bougé" },
-          "options": [
-            { "value": "person", "label": { "en": "Person", "fr": "Personne" } },
-            { "value": "animal", "label": { "en": "Animal", "fr": "Animal" } }
-          ]
-        }
-      ],
-      "variables": [
-        {
-          "key": "target",
-          "type": "string",
-          "label": { "en": "What moved", "fr": "Ce qui a bougé" }
-        }
-      ]
-    }
-  ],
-  "scene_actions": [
+      "description": {
+        "en": "The speech server stopped answering or refuses the requests: announcements fail until it is back.",
+        "fr": "Le serveur de synthèse vocale ne répond plus ou refuse les requêtes : les annonces échouent jusqu'à son retour.",
+        "de": "Der Sprachserver antwortet nicht mehr oder lehnt die Anfragen ab: Durchsagen schlagen fehl, bis er zurück ist.",
+        "es": "El servidor de síntesis de voz ya no responde o rechaza las solicitudes: los anuncios fallan hasta que vuelva."
+      }
+    },
     {
-      "key": "identify_device",
-      "label": { "en": "Identify a device", "fr": "Identifier un appareil" },
-      "description": {
-        "en": "Make a device signal itself (the demo light blinks).",
-        "fr": "Fait se signaler un appareil (la lampe de démonstration clignote)."
+      "key": "server_online",
+      "label": {
+        "en": "Voice server back",
+        "fr": "Serveur de voix revenu",
+        "de": "Sprachserver wieder da",
+        "es": "Servidor de voz de vuelta"
       },
-      "timeout_seconds": 15,
-      "fields": [
-        {
-          "key": "device",
-          "type": "select",
-          "source": "devices",
-          "label": { "en": "Device", "fr": "Appareil" },
-          "required": true
-        }
-      ],
-      "outputs": [
-        {
-          "key": "signalled",
-          "type": "boolean",
-          "label": { "en": "Device signalled", "fr": "Appareil signalé" }
-        }
-      ]
-    }
-  ],
-  "widgets": [
-    {
-      "key": "demo_status",
-      "label": { "en": "Demo status", "fr": "État de la démo" },
       "description": {
-        "en": "Live temperature and plug power, plug connection and observed location.",
-        "fr": "Température et puissance en direct, connexion de la prise, position observée."
-      },
-      "icon": "activity",
-      "action_timeout_seconds": 15
+        "en": "The speech server answers again after an outage.",
+        "fr": "Le serveur de synthèse vocale répond de nouveau après une panne.",
+        "de": "Der Sprachserver antwortet nach einem Ausfall wieder.",
+        "es": "El servidor de síntesis de voz vuelve a responder tras una avería."
+      }
     }
   ]
 }
