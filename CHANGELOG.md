@@ -10,6 +10,8 @@ the notes of the version's GitHub Release.
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-11-10
+
 ### Added
 
 - A voice for Gladys 5.3 from any server of the OpenAI speech API: Kokoro
@@ -23,4 +25,5 @@ the notes of the version's GitHub Release.
 - One announcement on several speakers asks the server once; the latest clips
   are kept in memory.
 
-[Unreleased]: https://github.com/guim31/gladys-openai-tts/commits/main
+[Unreleased]: https://github.com/guim31/gladys-openai-tts/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/guim31/gladys-openai-tts/releases/tag/v1.0.0
